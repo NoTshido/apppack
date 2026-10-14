@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AppPack — выбери программы и установи</title>
+<style>
+:root{color-scheme:dark;--card:rgba(62,62,67,.66);--card2:rgba(92,92,99,.78);--ink:#f2f2f4;--mute:#b6b6bd;--line:rgba(255,255,255,.15);--acc:#dcdce0;--acc-ink:#141416;--ok:#e6e6ea;--term:rgba(10,10,12,.78);--term-ink:#cfcfd6}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font:16px/1.5 "Segoe UI Variable","Segoe UI",system-ui,sans-serif;background:linear-gradient(rgba(8,8,10,.5),rgba(8,8,10,.72)),url("bg.jpg") center/cover fixed #0c0c0e}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+header{padding:22px 0 8px}
+header h1{margin:0;font-size:28px;letter-spacing:-.02em;cursor:pointer;text-shadow:0 2px 12px #000}
+header p{margin:4px 0 0;color:var(--mute)}
+main{display:grid;grid-template-columns:230px 1fr 320px;gap:20px;padding:16px 0 48px;align-items:start}
+@media (max-width:980px){main{grid-template-columns:210px 1fr}aside{grid-column:1/-1;position:static}}
+@media (max-width:640px){main{grid-template-columns:1fr}#cats{flex-direction:row;overflow-x:auto;position:static}.cat{min-width:170px}}
+#cats{display:flex;flex-direction:column;gap:10px;position:sticky;top:16px}
+.cat{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);backdrop-filter:blur(8px)}
+.cat:hover{background:var(--card2)}
+.cat.cur{background:var(--card2);border-color:var(--ok)}
+.cat:focus-visible,.tile:focus-visible,button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.cat .ic{font-size:24px;line-height:1;width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.1);flex:none;filter:grayscale(1)}
+.cat .t{flex:1;min-width:0;display:flex;flex-direction:column}
+.cat b{font-size:17px}
+.cat small{color:var(--mute)}
+.cat .n{font-weight:700;color:var(--acc-ink);background:var(--ok);border-radius:99px;min-width:22px;padding:0 7px;text-align:center;font-size:13px}
+.cat .n:empty{display:none}
+.top{margin-bottom:14px}
+.top h2{margin:0;font-size:24px;text-shadow:0 2px 10px #000}
+.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.tile{all:unset;box-sizing:border-box;height:68px;cursor:pointer;display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);backdrop-filter:blur(8px)}
+.tile:hover{background:var(--card2)}
+.tile.on{border-color:var(--ok);background:var(--card2)}
+.ava{position:relative;overflow:hidden;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:18px;color:#fff;background:#6d6d75;flex:none}
+.ava img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6px;background:#fff}
+.tile div{flex:1;min-width:0}
+.tile b{display:block}
+.tile small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--mute)}
+.chk{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;flex:none;font-weight:700;color:var(--acc-ink)}
+.on .chk{background:var(--ok);border-color:var(--ok)}
+.on .chk::after{content:"✓"}
+aside{position:sticky;top:16px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:18px;backdrop-filter:blur(10px)}
+aside h3{margin:0 0 10px;font-size:18px}
+.list{max-height:200px;overflow:auto;margin:0 0 12px;padding:0;list-style:none}
+.list li{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)}
+.list button{all:unset;cursor:pointer;color:var(--mute);padding:0 6px}
+.empty{color:var(--mute);font-size:14px;margin:0 0 12px}
+.btn{all:unset;box-sizing:border-box;display:block;width:100%;text-align:center;cursor:pointer;padding:12px;border-radius:10px;font-weight:600;margin-top:8px}
+.btn.main{background:var(--acc);color:var(--acc-ink)}
+.btn.alt{border:1.5px solid var(--line)}
+.btn.alt:hover{background:var(--card2)}
+.btn[aria-disabled=true]{opacity:.45;cursor:not-allowed}
+pre{margin:12px 0 0;padding:12px;border-radius:8px;background:var(--term);color:var(--term-ink);font:12.5px/1.5 Consolas,"Cascadia Mono",monospace;max-height:170px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+#msg{min-height:20px;margin:8px 0 0;font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <h1 id="home">AppPack</h1>
+  <p>Отметь нужные программы, нажми «Готово» и запусти один файл.</p>
+</header>
+<main class="wrap">
+  <nav id="cats" aria-label="Разделы"></nav>
+  <section id="view" aria-live="polite"></section>
+  <aside>
+    <h3>Выбрано: <span id="cnt">0</span></h3>
+    <p class="empty" id="empty">Пока ничего. Открой раздел и отметь программы.</p>
+    <ul class="list" id="list"></ul>
+    <button class="btn main" id="bat" aria-disabled="true">Готово: скачать install.bat</button>
+    <button class="btn alt" id="files" aria-disabled="true">Скачать установщики (.exe)</button>
+    <button class="btn alt" id="clear">Очистить выбор</button>
+    <p id="msg"></p>
+    <pre id="script" hidden></pre>
+  </aside>
+</main>
+
+<script>
+/* ====== ДАННЫЕ: правь здесь ======
+   n — название, d — подпись, w — ID в winget (проверь: winget search <имя>),
+   f — путь к своему установщику на сайте, например "files/chrome.exe" (можно оставить пустым) */
+const CATS = [
+ {id:'browsers', name:'Браузеры', ic:'🌐', color:'#3b5bfd', apps:[
+  {n:'Google Chrome', d:'Самый популярный', w:'Google.Chrome', f:'', s:'google.com/chrome'},
+  {n:'Mozilla Firefox', d:'Открытый, приватный', w:'Mozilla.Firefox', f:'', s:'firefox.com'},
+  {n:'Vivaldi', d:'Гибкая настройка', w:'Vivaldi.Vivaldi', f:'', s:'vivaldi.com'},
+  {n:'Opera', d:'VPN и боковая панель', w:'Opera.Opera', f:'', s:'opera.com'},
+  {n:'Brave', d:'Блокировка рекламы', w:'Brave.Brave', f:'', s:'brave.com'},
+  {n:'Zen', d:'Вертикальные вкладки', w:'Zen-Team.Zen-Browser', f:'', s:'zen-browser.app'}]},
+ {id:'games', name:'Игры', ic:'🎮', color:'#e0457b', apps:[
+  {n:'Steam', d:'Магазин и библиотека', w:'Valve.Steam', f:'', s:'steampowered.com'},
+  {n:'Epic Games', d:'Лаунчер Epic', w:'EpicGames.EpicGamesLauncher', f:'', s:'epicgames.com'},
+  {n:'Riot Games', d:'Valorant, League of Legends', w:'', f:'files/riot-client.exe', s:'riotgames.com'},
+  {n:'Discord', d:'Голосовой чат', w:'Discord.Discord', f:'', s:'discord.com'}]},
+ {id:'music', name:'Музыка', ic:'🎧', color:'#12a77a', apps:[
+  {n:'Spotify', d:'Стриминг', w:'Spotify.Spotify', f:'', s:'spotify.com'},
+  {n:'AIMP', d:'Лёгкий плеер', w:'AIMP.AIMP', f:'', s:'aimp.ru'},
+  {n:'foobar2000', d:'Плеер для файлов', w:'PeterPawlowski.foobar2000', f:'', s:'foobar2000.org'},
+  {n:'VLC', d:'Видео и аудио', w:'VideoLAN.VLC', f:'', s:'videolan.org'}]},
+ {id:'soft', name:'ПО', ic:'🧰', color:'#d98a12', apps:[
+  {n:'7-Zip', d:'Архиватор', w:'7zip.7zip', f:'', s:'7-zip.org'},
+  {n:'WinRAR', d:'Архиватор RAR', w:'RARLab.WinRAR', f:'', s:'win-rar.com'},
+  {n:'qBittorrent', d:'Торрент-клиент', w:'qBittorrent.qBittorrent', f:'', s:'qbittorrent.org'},
+  {n:'VS Code', d:'Редактор кода', w:'Microsoft.VisualStudioCode', f:'', s:'code.visualstudio.com'},
+  {n:'Telegram', d:'Мессенджер', w:'Telegram.TelegramDesktop', f:'', s:'telegram.org'}]},
+ {id:'lan', name:'LAN game', ic:'🔗', color:'#8a4dff', apps:[
+  {n:'Hamachi', d:'Виртуальная сеть', w:'LogMeIn.Hamachi', f:'', s:'vpn.net'},
+  {n:'Radmin VPN', d:'Бесплатная VPN для игр', w:'Famatech.RadminVPN', f:'', s:'radmin-vpn.com'}]},
+ {id:'drivers', name:'Драйверы', ic:'⚙️', color:'#0e9fc0', apps:[
+  {n:'NVIDIA App', d:'Драйверы GeForce', w:'Nvidia.NvidiaApp', f:'', s:'nvidia.com'}]}
+];
+CATS.forEach(c => c.apps.forEach(a => a.k = a.w || a.n));
+/* ================================== */
+
+const ALL = CATS.flatMap(c => c.apps.map(a => ({...a, color:c.color})));
+const sel = new Set();
+const $ = id => document.getElementById(id);
+let open = 0;
+
+const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+/* порядок поиска иконки: свой файл icons/<имя>.png -> Google -> DuckDuckGo -> буква */
+const SRC = [a => `icons/${slug(a.n)}.png`, a => `https://www.google.com/s2/favicons?domain=${a.s}&sz=128`, a => `https://icons.duckduckgo.com/ip3/${a.s.split('/')[0]}.ico`];
+function nextIcon(img, fail){
+  const a = ALL.find(x => x.k === img.dataset.k); let n = +img.dataset.s;
+  if(n >= SRC.length-1){ if(fail) img.remove(); return; }
+  if(fail || img.naturalWidth <= 16){ img.dataset.s = ++n; img.src = SRC[n](a); }
+}
+document.addEventListener('error', e => { if(e.target.dataset && e.target.dataset.k) nextIcon(e.target, true); }, true);
+document.addEventListener('load', e => { if(e.target.dataset && e.target.dataset.k) nextIcon(e.target, false); }, true);
+
+function renderView(){
+  $('cats').innerHTML = CATS.map((c,i) => {
+    const k = c.apps.filter(a => sel.has(a.k)).length;
+    return `<button class="cat${i===open?' cur':''}" data-cat="${i}"><span class="ic">${c.ic}</span><span class="t"><b>${c.name}</b><small>${c.apps.length} программ</small></span><span class="n">${k||''}</span></button>`;
+  }).join('');
+  const c = CATS[open];
+  $('view').innerHTML = `<div class="top"><h2>${c.name}</h2></div><div class="apps">` +
+    c.apps.map(a => `<button class="tile${sel.has(a.k)?' on':''}" data-app="${a.k}" aria-pressed="${sel.has(a.k)}"><span class="ava">${a.n[0]}<img data-k="${a.k}" data-s="0" src="${SRC[0](a)}" alt=""></span><div><b>${a.n}</b><small>${a.d}</small></div><span class="chk"></span></button>`).join('') + '</div>';
+}
+
+function script(){
+  const L = ['@echo off','echo Installing selected apps...','echo.'];
+  [...sel].forEach(id => {
+    const a = ALL.find(x => x.k === id);
+    L.push(`echo [${a.n}]`);
+    if(a.w) L.push(`winget install --id ${a.w} -e --silent --accept-package-agreements --accept-source-agreements`);
+    else L.push('echo   Not in winget - install manually with the downloaded .exe');
+  });
+  L.push('echo.','echo Done.','pause');
+  return L.join('\r\n');
+}
+
+function renderPanel(){
+  const ids = [...sel];
+  $('cnt').textContent = ids.length;
+  $('empty').hidden = ids.length > 0;
+  $('list').innerHTML = ids.map(id => `<li>${ALL.find(a => a.k === id).n}<button data-rm="${id}" aria-label="Убрать">✕</button></li>`).join('');
+  $('bat').setAttribute('aria-disabled', ids.length ? 'false' : 'true');
+  $('files').setAttribute('aria-disabled', ids.some(id => ALL.find(a => a.k === id).f) ? 'false' : 'true');
+  $('script').hidden = !ids.length;
+  $('script').textContent = script().replace(/\r/g, '');
+}
+
+function refresh(){ renderView(); renderPanel(); }
+function say(t){ $('msg').textContent = t; }
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-cat],[data-back],[data-app],[data-rm]');
+  if(!t) return;
+  if(t.dataset.cat !== undefined) open = +t.dataset.cat;
+  else if(t.dataset.back !== undefined) open = null;
+  else {
+    const id = t.dataset.app || t.dataset.rm;
+    sel.has(id) ? sel.delete(id) : sel.add(id);
+  }
+  say(''); refresh();
+});
+$('home').onclick = () => { open = 0; refresh(); };
+$('clear').onclick = () => { sel.clear(); say(''); refresh(); };
+
+$('bat').onclick = () => {
+  if(!sel.size) return say('Сначала отметь хотя бы одну программу.');
+  const b = new Blob([script()], {type:'application/octet-stream'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download = 'install.bat'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  say('Готово. Запусти install.bat двойным щелчком (нужен Windows 10/11 с winget).');
+};
+
+$('files').onclick = () => {
+  const list = [...sel].map(id => ALL.find(a => a.k === id)).filter(a => a.f);
+  if(!list.length) return say('Для выбранных программ не указан путь к установщику (поле f).');
+  list.forEach((a, i) => setTimeout(() => {
+    const l = document.createElement('a'); l.href = a.f; l.download = ''; l.click();
+  }, i * 800));
+  say(`Скачиваю файлов: ${list.length}. Браузер может спросить разрешение на несколько загрузок.`);
+};
+
+refresh();
+</script>
+</body>
+</html>
