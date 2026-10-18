@@ -28,6 +28,8 @@ main{display:grid;grid-template-columns:230px 1fr 320px;gap:20px;padding:16px 0 
 .cat .n:empty{display:none}
 .top{margin-bottom:14px}
 .top h2{margin:0;font-size:24px;text-shadow:0 2px 10px #000}
+.grp{margin:22px 0 10px;font-size:14px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;text-shadow:0 2px 8px #000}
+.top+.grp{margin-top:4px}
 .apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .tile{all:unset;box-sizing:border-box;height:68px;cursor:pointer;display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);backdrop-filter:blur(8px)}
 .tile:hover{background:var(--card2)}
@@ -58,7 +60,7 @@ pre{margin:12px 0 0;padding:12px;border-radius:8px;background:var(--term);color:
 <body>
 <header class="wrap">
   <h1 id="home">AppPack</h1>
-  <p>Отметь нужные программы, нажми «Готово» и запусти один файл.</p>
+  <p>Отметь нужные программы и нажми «Установить выбранное». Один раз на ПК нужна «Первая настройка».</p>
 </header>
 <main class="wrap">
   <nav id="cats" aria-label="Разделы"></nav>
@@ -67,8 +69,9 @@ pre{margin:12px 0 0;padding:12px;border-radius:8px;background:var(--term);color:
     <h3>Выбрано: <span id="cnt">0</span></h3>
     <p class="empty" id="empty">Пока ничего. Открой раздел и отметь программы.</p>
     <ul class="list" id="list"></ul>
-    <button class="btn main" id="bat" aria-disabled="true">Готово: скачать install.bat</button>
-    <button class="btn alt" id="files" aria-disabled="true">Скачать установщики (.exe)</button>
+    <button class="btn main" id="go" aria-disabled="true">Установить выбранное</button>
+    <button class="btn alt" id="setup">Первая настройка (один раз)</button>
+    <button class="btn alt" id="bat" aria-disabled="true">Без настройки: скачать .bat</button>
     <button class="btn alt" id="clear">Очистить выбор</button>
     <p id="msg"></p>
     <pre id="script" hidden></pre>
@@ -86,23 +89,31 @@ const CATS = [
   {n:'Vivaldi', d:'Гибкая настройка', w:'Vivaldi.Vivaldi', f:'', s:'vivaldi.com'},
   {n:'Opera', d:'VPN и боковая панель', w:'Opera.Opera', f:'', s:'opera.com'},
   {n:'Brave', d:'Блокировка рекламы', w:'Brave.Brave', f:'', s:'brave.com'},
-  {n:'Zen', d:'Вертикальные вкладки', w:'Zen-Team.Zen-Browser', f:'', s:'zen-browser.app'}]},
+  {n:'Zen', d:'Вертикальные вкладки', w:'Zen-Team.Zen-Browser', f:'', s:'zen-browser.app'},
+  {n:'Яндекс Браузер', d:'С Алисой и синхронизацией', w:'Yandex.Browser', f:'', s:'browser.yandex.ru'}]},
  {id:'games', name:'Игры', ic:'🎮', color:'#e0457b', apps:[
   {n:'Steam', d:'Магазин и библиотека', w:'Valve.Steam', f:'', s:'steampowered.com'},
   {n:'Epic Games', d:'Лаунчер Epic', w:'EpicGames.EpicGamesLauncher', f:'', s:'epicgames.com'},
-  {n:'Riot Games', d:'Valorant, League of Legends', w:'', f:'files/riot-client.exe', s:'riotgames.com'},
-  {n:'Discord', d:'Голосовой чат', w:'Discord.Discord', f:'', s:'discord.com'}]},
+  {n:'Riot Games', d:'Лаунчер Riot (Valorant, LoL)', w:'', u:'https://www.riotgames.com/en', s:'riotgames.com'},
+  {n:'Genshin Impact', d:'Лаунчер HoYoPlay', w:'', u:'https://genshin.hoyoverse.com/en/home', s:'genshin.hoyoverse.com'},
+  {n:'Neverness to Everness', d:'Лаунчер NTE', w:'', u:'https://nte.perfectworld.com/en', s:'nte.perfectworld.com'},
+  {n:'Arknights: Endfield', d:'Лаунчер Gryphline', w:'', u:'https://endfield.gryphline.com/en-us', s:'endfield.gryphline.com'},
+  {n:'Wuthering Waves', d:'Лаунчер Kuro Games', w:'', u:'https://wutheringwaves.kurogames.com/en/main', s:'wutheringwaves.kurogames.com'}]},
  {id:'music', name:'Музыка', ic:'🎧', color:'#12a77a', apps:[
   {n:'Spotify', d:'Стриминг', w:'Spotify.Spotify', f:'', s:'spotify.com'},
   {n:'AIMP', d:'Лёгкий плеер', w:'AIMP.AIMP', f:'', s:'aimp.ru'},
-  {n:'foobar2000', d:'Плеер для файлов', w:'PeterPawlowski.foobar2000', f:'', s:'foobar2000.org'},
+  {n:'Яндекс Музыка', d:'Стриминг от Яндекса', w:'Yandex.Music', f:'', s:'music.yandex.ru'},
   {n:'VLC', d:'Видео и аудио', w:'VideoLAN.VLC', f:'', s:'videolan.org'}]},
  {id:'soft', name:'ПО', ic:'🧰', color:'#d98a12', apps:[
-  {n:'7-Zip', d:'Архиватор', w:'7zip.7zip', f:'', s:'7-zip.org'},
-  {n:'WinRAR', d:'Архиватор RAR', w:'RARLab.WinRAR', f:'', s:'win-rar.com'},
-  {n:'qBittorrent', d:'Торрент-клиент', w:'qBittorrent.qBittorrent', f:'', s:'qbittorrent.org'},
-  {n:'VS Code', d:'Редактор кода', w:'Microsoft.VisualStudioCode', f:'', s:'code.visualstudio.com'},
-  {n:'Telegram', d:'Мессенджер', w:'Telegram.TelegramDesktop', f:'', s:'telegram.org'}]},
+  {g:'Кодинг', n:'VS Code', d:'Редактор кода', w:'Microsoft.VisualStudioCode', f:'', s:'code.visualstudio.com'},
+  {g:'Кодинг', n:'Visual Studio', d:'Полноценная IDE (Community)', w:'Microsoft.VisualStudio.2022.Community', f:'', s:'visualstudio.microsoft.com'},
+  {g:'Кодинг', n:'Flowgorithm', d:'Блок-схемы и алгоритмы', w:'DevinCook.Flowgorithm', f:'', s:'flowgorithm.org'},
+  {g:'Мессенджеры', n:'Telegram', d:'Мессенджер', w:'Telegram.TelegramDesktop', f:'', s:'telegram.org'},
+  {g:'Мессенджеры', n:'Discord', d:'Голосовой чат', w:'Discord.Discord', f:'', s:'discord.com'},
+  {g:'Утилиты', n:'7-Zip', d:'Архиватор', w:'7zip.7zip', f:'', s:'7-zip.org'},
+  {g:'Утилиты', n:'WinRAR', d:'Архиватор RAR', w:'RARLab.WinRAR', f:'', s:'win-rar.com'},
+  {g:'Утилиты', n:'qBittorrent', d:'Торрент-клиент', w:'qBittorrent.qBittorrent', f:'', s:'qbittorrent.org'},
+  {g:'Виртуализация', n:'Oracle VirtualBox', d:'Виртуальные машины', w:'Oracle.VirtualBox', f:'', s:'virtualbox.org'}]},
  {id:'lan', name:'LAN game', ic:'🔗', color:'#8a4dff', apps:[
   {n:'Hamachi', d:'Виртуальная сеть', w:'LogMeIn.Hamachi', f:'', s:'vpn.net'},
   {n:'Radmin VPN', d:'Бесплатная VPN для игр', w:'Famatech.RadminVPN', f:'', s:'radmin-vpn.com'}]},
@@ -134,19 +145,32 @@ function renderView(){
     return `<button class="cat${i===open?' cur':''}" data-cat="${i}"><span class="ic">${c.ic}</span><span class="t"><b>${c.name}</b><small>${c.apps.length} программ</small></span><span class="n">${k||''}</span></button>`;
   }).join('');
   const c = CATS[open];
-  $('view').innerHTML = `<div class="top"><h2>${c.name}</h2></div><div class="apps">` +
-    c.apps.map(a => `<button class="tile${sel.has(a.k)?' on':''}" data-app="${a.k}" aria-pressed="${sel.has(a.k)}"><span class="ava">${a.n[0]}<img data-k="${a.k}" data-s="0" src="${SRC[0](a)}" alt=""></span><div><b>${a.n}</b><small>${a.d}</small></div><span class="chk"></span></button>`).join('') + '</div>';
+  const tile = a => `<button class="tile${sel.has(a.k)?' on':''}" data-app="${a.k}" aria-pressed="${sel.has(a.k)}"><span class="ava">${a.n[0]}<img data-k="${a.k}" data-s="0" src="${SRC[0](a)}" alt=""></span><div><b>${a.n}</b><small>${a.d}</small></div><span class="chk"></span></button>`;
+  const grid = list => '<div class="apps">' + list.map(tile).join('') + '</div>';
+  let body;
+  if(c.apps.some(a => a.g)){
+    const gs = [...new Set(c.apps.map(a => a.g || 'Другое'))];
+    body = gs.map(g => `<h3 class="grp">${g}</h3>` + grid(c.apps.filter(a => (a.g || 'Другое') === g))).join('');
+  } else body = grid(c.apps);
+  $('view').innerHTML = `<div class="top"><h2>${c.name}</h2></div>` + body;
 }
 
 function script(){
-  const L = ['@echo off','echo Installing selected apps...','echo.'];
+  const L = [
+    '@echo off',
+    'title AppPack',
+    `net session >nul 2>&1 || (powershell -NoProfile -Command "Start-Process '%~f0' -Verb RunAs" & exit /b)`,
+    'where winget >nul 2>&1 || (echo winget not found. Update "App Installer" in Microsoft Store. & pause & exit /b)',
+    'echo Installing selected apps...',
+    'echo.'
+  ];
   [...sel].forEach(id => {
     const a = ALL.find(x => x.k === id);
     L.push(`echo [${a.n}]`);
     if(a.w) L.push(`winget install --id ${a.w} -e --silent --accept-package-agreements --accept-source-agreements`);
-    else L.push('echo   Not in winget - install manually with the downloaded .exe');
+    else L.push('start "" "' + a.u + '"');
   });
-  L.push('echo.','echo Done.','pause');
+  L.push('echo.', 'echo Done. This installer will delete itself.', 'timeout /t 5 >nul', '(goto) 2>nul & del "%~f0"');
   return L.join('\r\n');
 }
 
@@ -156,8 +180,8 @@ function renderPanel(){
   $('empty').hidden = ids.length > 0;
   $('list').innerHTML = ids.map(id => `<li>${ALL.find(a => a.k === id).n}<button data-rm="${id}" aria-label="Убрать">✕</button></li>`).join('');
   $('bat').setAttribute('aria-disabled', ids.length ? 'false' : 'true');
-  $('files').setAttribute('aria-disabled', ids.some(id => ALL.find(a => a.k === id).f) ? 'false' : 'true');
-  $('script').hidden = !ids.length;
+  $('go').setAttribute('aria-disabled', ids.length ? 'false' : 'true');
+  $('script').hidden = true;
   $('script').textContent = script().replace(/\r/g, '');
 }
 
@@ -178,23 +202,78 @@ document.addEventListener('click', e => {
 $('home').onclick = () => { open = 0; refresh(); };
 $('clear').onclick = () => { sel.clear(); say(''); refresh(); };
 
+const pkey = a => slug(a.n);
+function protoUrl(){
+  const L = [...sel].map(id => ALL.find(x => x.k === id));
+  return 'apppack://install?ids=' + L.filter(a => a.w).map(a => a.w).join(',') + '&p=' + L.filter(a => !a.w).map(pkey).join(',');
+}
+function setupBat(){
+  const W = ALL.filter(a => a.w).map(a => `'${a.w}'`).join(',');
+  const P = ALL.filter(a => !a.w).map(a => `'${pkey(a)}'='${a.u}'`).join(';');
+  const ps = `$d = Join-Path $env:LOCALAPPDATA 'AppPack'
+New-Item -ItemType Directory -Force -Path $d | Out-Null
+$hp = Join-Path $d 'handler.ps1'
+$h = @'
+param([string]$u)
+$ok = @(${W})
+$pg = @{${P}}
+$q = ($u -split '\\?', 2)[1]
+$ids = @(); $pages = @()
+foreach($kv in ($q -split '&')){
+  $p = $kv -split '=', 2
+  if($p[0] -eq 'ids'){ $ids = $p[1] -split ',' }
+  if($p[0] -eq 'p'){ $pages = $p[1] -split ',' }
+}
+$ids = @($ids | Where-Object { $ok -contains $_ })
+$pages = @($pages | Where-Object { $pg.ContainsKey($_) })
+$me = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+if(-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
+  Start-Process powershell.exe -Verb RunAs -ArgumentList ('-NoProfile -ExecutionPolicy Bypass -File "{0}" "{1}"' -f $PSCommandPath, $u)
+  exit
+}
+foreach($id in $ids){
+  Write-Host "Installing $id"
+  winget install --id $id -e --silent --accept-package-agreements --accept-source-agreements
+}
+foreach($p in $pages){ Start-Process $pg[$p] }
+Write-Host 'Done'
+Start-Sleep 5
+'@
+Set-Content -Path $hp -Value $h -Encoding UTF8
+$k = 'HKCU:\\Software\\Classes\\apppack'
+New-Item -Path $k -Value 'URL:AppPack' -Force | Out-Null
+New-ItemProperty -Path $k -Name 'URL Protocol' -Value '' -Force | Out-Null
+$cmd = ('powershell.exe -NoProfile -ExecutionPolicy Bypass -File "{0}" "%1"' -f $hp)
+New-Item -Path ($k + '\\shell\\open\\command') -Value $cmd -Force | Out-Null`;
+  return ['@echo off','title AppPack setup',
+    `powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllText('%~f0'); $i=$t.IndexOf('::PS'+'BEGIN'); iex $t.Substring($i+9)"`,
+    'echo.','echo Setup complete. Go back to the site and press Install.','pause','exit /b','::PSBEGIN',ps].join('\r\n');
+}
+function saveFile(name, text){
+  const b = new Blob([text], {type:'application/octet-stream'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+}
+$('go').onclick = () => {
+  if(!sel.size) return say('Сначала отметь хотя бы одну программу.');
+  const a = document.createElement('a'); a.href = protoUrl(); a.click();
+  say('Если браузер спросил разрешение — нажми «Открыть» (можно поставить галочку «всегда»). Если ничего не произошло, сначала сделай «Первую настройку» ниже.');
+};
+$('setup').onclick = () => {
+  saveFile('AppPack-setup.bat', setupBat());
+  say('Открой скачанный AppPack-setup.bat двойным щелчком, один раз. Потом возвращайся сюда и жми «Установить выбранное».');
+};
+
 $('bat').onclick = () => {
   if(!sel.size) return say('Сначала отметь хотя бы одну программу.');
   const b = new Blob([script()], {type:'application/octet-stream'});
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(b); a.download = 'install.bat'; a.click();
+  a.href = URL.createObjectURL(b); a.download = 'AppPack-install.bat'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1500);
-  say('Готово. Запусти install.bat двойным щелчком (нужен Windows 10/11 с winget).');
+  say('Файл скачан. Открой его из загрузок двойным щелчком и подтверди запрос Windows: программы поставятся сами, а файл потом удалится.');
 };
 
-$('files').onclick = () => {
-  const list = [...sel].map(id => ALL.find(a => a.k === id)).filter(a => a.f);
-  if(!list.length) return say('Для выбранных программ не указан путь к установщику (поле f).');
-  list.forEach((a, i) => setTimeout(() => {
-    const l = document.createElement('a'); l.href = a.f; l.download = ''; l.click();
-  }, i * 800));
-  say(`Скачиваю файлов: ${list.length}. Браузер может спросить разрешение на несколько загрузок.`);
-};
 
 refresh();
 </script>
