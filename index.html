@@ -8,13 +8,14 @@
 :root{color-scheme:dark;--card:rgba(62,62,67,.66);--card2:rgba(92,92,99,.78);--ink:#f2f2f4;--mute:#b6b6bd;--line:rgba(255,255,255,.15);--acc:#dcdce0;--acc-ink:#141416;--ok:#e6e6ea;--term:rgba(10,10,12,.78);--term-ink:#cfcfd6}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;color:var(--ink);font:16px/1.5 "Segoe UI Variable","Segoe UI",system-ui,sans-serif;background:linear-gradient(rgba(8,8,10,.5),rgba(8,8,10,.72)),url("bg.jpg") center/cover fixed #0c0c0e}
-.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+.wrap{max-width:none;margin:0;padding:0 28px}
 header{padding:22px 0 8px}
 header h1{margin:0;font-size:28px;letter-spacing:-.02em;cursor:pointer;text-shadow:0 2px 12px #000}
 header p{margin:4px 0 0;color:var(--mute)}
 main{display:grid;grid-template-columns:230px 1fr 320px;gap:20px;padding:16px 0 48px;align-items:start}
 @media (max-width:980px){main{grid-template-columns:210px 1fr}aside{grid-column:1/-1;position:static}}
 @media (max-width:640px){main{grid-template-columns:1fr}#cats{flex-direction:row;overflow-x:auto;position:static}.cat{min-width:170px}}
+#view{min-width:0}
 #cats{display:flex;flex-direction:column;gap:10px;position:sticky;top:16px}
 .cat{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);backdrop-filter:blur(8px)}
 .cat:hover{background:var(--card2)}
@@ -28,10 +29,12 @@ main{display:grid;grid-template-columns:230px 1fr 320px;gap:20px;padding:16px 0 
 .cat .n:empty{display:none}
 .top{margin-bottom:14px}
 .top h2{margin:0;font-size:24px;text-shadow:0 2px 10px #000}
-.grp{margin:22px 0 10px;font-size:14px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;text-shadow:0 2px 8px #000}
-.top+.grp{margin-top:4px}
-.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
-.tile{all:unset;box-sizing:border-box;height:68px;cursor:pointer;display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);backdrop-filter:blur(8px)}
+.blocks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),300px));justify-content:start;gap:14px;align-items:start}
+.blk{min-width:0;background:rgba(30,30,34,.5);border:1.5px solid var(--line);border-radius:16px;padding:14px;backdrop-filter:blur(8px)}
+.blk h3{margin:0 0 10px;font-size:14px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+.blk .apps{grid-template-columns:minmax(0,1fr)}
+.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),250px));justify-content:start;gap:10px}
+.tile{all:unset;box-sizing:border-box;min-width:0;height:68px;cursor:pointer;display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);backdrop-filter:blur(8px)}
 .tile:hover{background:var(--card2)}
 .tile.on{border-color:var(--ok);background:var(--card2)}
 .ava{position:relative;overflow:hidden;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:18px;color:#fff;background:#6d6d75;flex:none}
@@ -39,7 +42,7 @@ main{display:grid;grid-template-columns:230px 1fr 320px;gap:20px;padding:16px 0 
 .ava:has(img){background:transparent}
 .ava:has(img) .lt{display:none}
 .tile div{flex:1;min-width:0}
-.tile b{display:block}
+.tile b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--mute)}
 .chk{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;flex:none;font-weight:700;color:var(--acc-ink)}
 .on .chk{background:var(--ok);border-color:var(--ok)}
@@ -92,13 +95,16 @@ const CATS = [
   {n:'Zen', d:'Вертикальные вкладки', w:'Zen-Team.Zen-Browser', f:'', s:'zen-browser.app'},
   {n:'Яндекс Браузер', d:'С Алисой и синхронизацией', w:'Yandex.Browser', f:'', s:'browser.yandex.ru'}]},
  {id:'games', name:'Игры', ic:'🎮', color:'#e0457b', apps:[
-  {n:'Steam', i:'icons/steam.png', raw:true, d:'Магазин и библиотека', w:'Valve.Steam', f:'', s:'steampowered.com'},
-  {n:'Epic Games', i:'icons/epic-games.png', raw:true, d:'Лаунчер Epic', w:'EpicGames.EpicGamesLauncher', f:'', s:'epicgames.com'},
-  {n:'Riot Games', i:'icons/riot-games.png', d:'Лаунчер Riot (Valorant, LoL)', w:'', u:'https://www.riotgames.com/en', s:'riotgames.com'},
-  {n:'Genshin Impact', i:'icons/genshin-impact.png', d:'Лаунчер HoYoPlay', w:'', u:'https://genshin.hoyoverse.com/en/home', s:'genshin.hoyoverse.com'},
-  {n:'Neverness to Everness', i:'icons/neverness-to-everness.png', d:'Лаунчер NTE', w:'', u:'https://nte.perfectworld.com/en', s:'nte.perfectworld.com'},
-  {n:'Arknights: Endfield', i:'icons/arknights-endfield.png', raw:true, d:'Лаунчер Gryphline', w:'', u:'https://endfield.gryphline.com/en-us', s:'endfield.gryphline.com'},
-  {n:'Wuthering Waves', i:'icons/wuthering-waves.png', d:'Лаунчер Kuro Games', w:'', u:'https://wutheringwaves.kurogames.com/en/main', s:'wutheringwaves.kurogames.com'}]},
+  {g:'Лаунчеры', n:'Steam', i:'icons/steam.png', raw:true, d:'Магазин и библиотека', w:'Valve.Steam', f:'', s:'steampowered.com'},
+  {g:'Лаунчеры', n:'Epic Games', i:'icons/epic-games.png', raw:true, d:'Лаунчер Epic', w:'EpicGames.EpicGamesLauncher', f:'', s:'epicgames.com'},
+  {g:'Лаунчеры', n:'Riot Games', i:'icons/riot-games.png', d:'Лаунчер Riot (Valorant, LoL)', w:'', u:'https://www.riotgames.com/en', s:'riotgames.com'},
+  {g:'Шутеры', n:'Arena Breakout', d:'Лаунчер MoreFun', w:'', u:'https://arenabreakoutinfinite.com/', s:'arenabreakoutinfinite.com'},
+  {g:'Шутеры', n:'War Thunder', d:'Лаунчер Gaijin', w:'', u:'https://warthunder.com/en/game/download', s:'warthunder.com'},
+  {g:'Шутеры', n:'Мир танков', kk:'world-of-tanks', d:'Lesta Game Center', w:'', u:'https://lesta.ru/', s:'lesta.ru'},
+  {g:'Гача', n:'Genshin Impact', i:'icons/genshin-impact.png', d:'Лаунчер HoYoPlay', w:'', u:'https://genshin.hoyoverse.com/en/home', s:'genshin.hoyoverse.com'},
+  {g:'Гача', n:'NTE', kk:'neverness-to-everness', i:'icons/neverness-to-everness.png', d:'Neverness to Everness', w:'', u:'https://nte.perfectworld.com/en', s:'nte.perfectworld.com'},
+  {g:'Гача', n:'Arknights: Endfield', i:'icons/arknights-endfield.png', raw:true, d:'Лаунчер Gryphline', w:'', u:'https://endfield.gryphline.com/en-us', s:'endfield.gryphline.com'},
+  {g:'Гача', n:'Wuthering Waves', i:'icons/wuthering-waves.png', d:'Лаунчер Kuro Games', w:'', u:'https://wutheringwaves.kurogames.com/en/main', s:'wutheringwaves.kurogames.com'}]},
  {id:'music', name:'Музыка', ic:'🎧', color:'#12a77a', apps:[
   {n:'Spotify', d:'Стриминг', w:'Spotify.Spotify', f:'', s:'spotify.com'},
   {n:'AIMP', d:'Лёгкий плеер', w:'AIMP.AIMP', f:'', s:'aimp.ru'},
@@ -106,20 +112,43 @@ const CATS = [
   {n:'VLC', raw:true, d:'Видео и аудио', w:'VideoLAN.VLC', f:'', s:'videolan.org'}]},
  {id:'soft', name:'ПО', ic:'🧰', color:'#d98a12', apps:[
   {g:'Кодинг', n:'VS Code', d:'Редактор кода', w:'Microsoft.VisualStudioCode', f:'', s:'code.visualstudio.com'},
-  {g:'Кодинг', n:'Visual Studio', d:'Полноценная IDE (Community)', w:'Microsoft.VisualStudio.2022.Community', f:'', s:'visualstudio.microsoft.com'},
+  {g:'Кодинг', n:'Visual Studio 2026', i:['icons/visual-studio-2026.png','https://cdn.jsdelivr.net/gh/selfhst/icons/png/visual-studio.png'], d:'Полноценная IDE (Community)', w:'Microsoft.VisualStudio.Community', f:'', s:'visualstudio.microsoft.com'},
   {g:'Кодинг', n:'Flowgorithm', d:'Блок-схемы и алгоритмы', w:'DevinCook.Flowgorithm', f:'', s:'flowgorithm.org'},
   {g:'Мессенджеры', n:'Telegram', d:'Мессенджер', w:'Telegram.TelegramDesktop', f:'', s:'telegram.org'},
   {g:'Мессенджеры', n:'Discord', d:'Голосовой чат', w:'Discord.Discord', f:'', s:'discord.com'},
   {g:'Утилиты', n:'7-Zip', d:'Архиватор', w:'7zip.7zip', f:'', s:'7-zip.org'},
   {g:'Утилиты', n:'WinRAR', d:'Архиватор RAR', w:'RARLab.WinRAR', f:'', s:'win-rar.com'},
   {g:'Утилиты', n:'qBittorrent', d:'Торрент-клиент', w:'qBittorrent.qBittorrent', f:'', s:'qbittorrent.org'},
+  {g:'Утилиты', n:'EarTrumpet', d:'Громкость каждого приложения', w:'File-New-Project.EarTrumpet', f:'', s:'eartrumpet.app'},
+  {g:'Графика и скриншоты', n:'Blender', d:'3D-моделирование и анимация', w:'BlenderFoundation.Blender', f:'', s:'blender.org'},
+  {g:'Графика и скриншоты', n:'GIMP', d:'Редактор изображений', w:'GIMP.GIMP.3', f:'', s:'gimp.org'},
+  {g:'Графика и скриншоты', n:'ShareX', d:'Скриншоты и запись экрана', w:'ShareX.ShareX', f:'', s:'getsharex.com'},
+  {g:'Графика и скриншоты', n:'Lightshot', d:'Скриншоты (скачает установщик)', w:'', u:'https://app.prntscr.com/build/setup-lightshot.exe', s:'app.prntscr.com'},
   {g:'Видео и запись', n:'OBS Studio', d:'Запись экрана и стримы', w:'OBSProject.OBSStudio', f:'', s:'obsproject.com'},
-  {g:'Видео и запись', n:'CapCut', d:'Видеоредактор', w:'ByteDance.CapCut', f:'', s:'capcut.com'},
-  {g:'Виртуализация', n:'Oracle VirtualBox', d:'Виртуальные машины', w:'Oracle.VirtualBox', f:'', s:'virtualbox.org'}]},
+  {g:'Видео и запись', n:'CapCut', d:'Видеоредактор', w:'ByteDance.CapCut', f:'', s:'capcut.com'}]},
  {id:'ai', name:'ИИ', ic:'🤖', color:'#7a5cff', apps:[
   {n:'Claude', d:'Ассистент от Anthropic', w:'Anthropic.Claude', f:'', s:'claude.ai'},
-  {n:'ChatGPT', d:'Ассистент от OpenAI (Microsoft Store)', w:'9NT1R1C2HH7J', src:'msstore', f:'', s:'chatgpt.com'},
+  {n:'ChatGPT', d:'Ассистент от OpenAI', w:'9NT1R1C2HH7J', src:'msstore', f:'', s:'chatgpt.com'},
   {n:'Gemini', d:'Ассистент от Google', w:'', u:'https://gemini.google/desktop', s:'gemini.google.com'}]},
+ {id:'shell', name:'Оболочка', ic:'💿', color:'#c0562b', apps:[
+  {g:'Виртуализация и флешки', n:'Oracle VirtualBox', d:'Виртуальные машины', w:'Oracle.VirtualBox', f:'', s:'virtualbox.org'},
+  {g:'Виртуализация и флешки', n:'Rufus', d:'Загрузочные флешки из ISO', w:'Rufus.Rufus', f:'', s:'rufus.ie'},
+  {g:'Windows', n:'Windows 11', d:'ISO с сайта Microsoft', w:'', u:'https://www.microsoft.com/software-download/windows11', s:'windows.com'},
+  {g:'Windows', n:'Windows 10', d:'ISO с сайта Microsoft', w:'', u:'https://www.microsoft.com/software-download/windows10', s:'windows.com'},
+  {g:'Linux', n:'Kali Linux', d:'ISO с kali.org', w:'', u:'https://www.kali.org/get-kali/', s:'kali.org'},
+  {g:'Linux', n:'Ubuntu', d:'ISO с ubuntu.com', w:'', u:'https://ubuntu.com/download/desktop', s:'ubuntu.com'},
+  {g:'Linux', n:'Linux Mint', d:'ISO с linuxmint.com', w:'', u:'https://linuxmint.com/download.php', s:'linuxmint.com'},
+  {g:'Linux', n:'Debian', d:'ISO с debian.org', w:'', u:'https://www.debian.org/distrib/', s:'debian.org'}]},
+ {id:'checks', name:'Проверки', ic:'🩺', color:'#2f9e8f', apps:[
+  {g:'Всё о системе', n:'HWiNFO', d:'Полная информация и датчики', w:'REALiX.HWiNFO', f:'', s:'hwinfo.com'},
+  {g:'Всё о системе', n:'HWMonitor', d:'Температуры и напряжения', w:'CPUID.HWMonitor', f:'', s:'cpuid.com'},
+  {g:'Процессор', n:'CPU-Z', d:'Процессор, память, плата', w:'CPUID.CPU-Z', f:'', s:'cpuid.com'},
+  {g:'Процессор', n:'Core Temp', d:'Температура процессора', w:'ALCPU.CoreTemp', f:'', s:'alcpu.com'},
+  {g:'Видеокарта', n:'GPU-Z', d:'Данные о видеокарте', w:'TechPowerUp.GPU-Z', f:'', s:'techpowerup.com'},
+  {g:'Видеокарта', n:'FurMark', d:'Стресс-тест видеокарты', w:'Geeks3D.FurMark.2', f:'', s:'geeks3d.com'},
+  {g:'Диски', n:'CrystalDiskInfo', d:'Здоровье и SMART дисков', w:'CrystalDewWorld.CrystalDiskInfo', f:'', s:'crystalmark.info'},
+  {g:'Диски', n:'CrystalDiskMark', d:'Тест скорости дисков', w:'CrystalDewWorld.CrystalDiskMark', f:'', s:'crystalmark.info'},
+  {g:'Оперативка', n:'MemTest86', d:'Тест памяти (сайт загрузки)', w:'', u:'https://www.memtest86.com/download.htm', s:'memtest86.com'}]},
  {id:'lan', name:'LAN game', ic:'🔗', color:'#8a4dff', apps:[
   {n:'Hamachi', d:'Виртуальная сеть', w:'LogMeIn.Hamachi', f:'', s:'vpn.net'},
   {n:'Radmin VPN', d:'Бесплатная VPN для игр', w:'Famatech.RadminVPN', f:'', s:'radmin-vpn.com'}]},
@@ -133,16 +162,18 @@ const ALL = CATS.flatMap(c => c.apps.map(a => ({...a, color:c.color})));
 const sel = new Set();
 const $ = id => document.getElementById(id);
 let open = 0;
+try{ const v = parseInt(localStorage.getItem('apppack-open'), 10); if(v >= 0 && v < CATS.length) open = v; }catch(e){}
 
 const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 /* иконки: быстрый источник Google (без редиректа) -> DuckDuckGo -> буква; найденный адрес запоминается, всё грузится заранее */
 const SRC = [a => `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${a.s.split('/')[0]}&size=64`, a => `https://icons.duckduckgo.com/ip3/${a.s.split('/')[0]}.ico`];
 const ICON = {};
-const chain = a => (a.i ? [a.i] : []).concat(SRC.map(f => f(a)));  /* a.i — свой файл иконки, берётся первым */
+const own = a => [].concat(a.i || []);
+const chain = a => own(a).concat(SRC.map(f => f(a)));  /* a.i — свой файл иконки, берётся первым */
 function nextIcon(img, fail){
   const k = img.dataset.k; if(img.dataset.s === 'done') return;
   const a = ALL.find(x => x.k === k), ch = chain(a); let n = +img.dataset.s; const last = n >= ch.length - 1;
-  if(!fail && (img.naturalWidth > 16 || last)){ ICON[k] = img.src; img.dataset.s = 'done'; if(!(a.i && n === 0) && !a.raw && !img.src.startsWith('data:')) strip(k, img.src); return; }
+  if(!fail && (img.naturalWidth > 16 || last)){ ICON[k] = img.src; img.dataset.s = 'done'; if(n >= own(a).length && !a.raw && !img.src.startsWith('data:')) strip(k, img.src); return; }
   if(last){ ICON[k] = ''; img.remove(); return; }
   img.dataset.s = ++n; img.src = ch[n];
 }
@@ -150,7 +181,7 @@ document.addEventListener('error', e => { if(e.target.dataset && e.target.datase
 document.addEventListener('load', e => { if(e.target.dataset && e.target.dataset.k) nextIcon(e.target, false); }, true);
 /* у многих иконок белый квадрат — часть самой картинки. Вырезаем белый фон, связанный с краями; тёмные одноцветные логотипы делаем белыми */
 function strip(k, url){
-  const tries = [url, 'https://wsrv.nl/?output=png&url=' + encodeURIComponent(url)];
+  const tries = ['https://wsrv.nl/?output=png&url=' + encodeURIComponent(url)];  /* напрямую Google/DDG не отдают CORS, поэтому только через прокси */
   const go = i => {
     if(i >= tries.length) return;
     const im = new Image(); im.crossOrigin = 'anonymous';
@@ -191,12 +222,12 @@ function renderView(){
     return `<button class="cat${i===open?' cur':''}" data-cat="${i}"><span class="ic">${c.ic}</span><span class="t"><b>${c.name}</b><small>${c.apps.length} программ</small></span><span class="n">${k||''}</span></button>`;
   }).join('');
   const c = CATS[open];
-  const tile = a => `<button class="tile${sel.has(a.k)?' on':''}" data-app="${a.k}" aria-pressed="${sel.has(a.k)}"><span class="ava"><span class="lt">${a.n[0]}</span>${ICON[a.k] === '' ? '' : `<img data-k="${a.k}" data-s="${ICON[a.k] ? 'done' : 0}" src="${ICON[a.k] || chain(a)[0]}" alt="" decoding="async">`}</span><div><b>${a.n}</b><small>${a.d}</small></div><span class="chk"></span></button>`;
+  const tile = a => `<button class="tile${sel.has(a.k)?' on':''}" title="${a.n} — ${a.d}" data-app="${a.k}" aria-pressed="${sel.has(a.k)}"><span class="ava"><span class="lt">${a.n[0]}</span>${ICON[a.k] === '' ? '' : `<img data-k="${a.k}" data-s="${ICON[a.k] ? 'done' : 0}" src="${ICON[a.k] || chain(a)[0]}" alt="" decoding="async">`}</span><div><b>${a.n}</b><small>${a.d}</small></div><span class="chk"></span></button>`;
   const grid = list => '<div class="apps">' + list.map(tile).join('') + '</div>';
   let body;
   if(c.apps.some(a => a.g)){
     const gs = [...new Set(c.apps.map(a => a.g || 'Другое'))];
-    body = gs.map(g => `<h3 class="grp">${g}</h3>` + grid(c.apps.filter(a => (a.g || 'Другое') === g))).join('');
+    body = '<div class="blocks">' + gs.map(g => `<div class="blk"><h3>${g}</h3>` + grid(c.apps.filter(a => (a.g || 'Другое') === g)) + '</div>').join('') + '</div>';
   } else body = grid(c.apps);
   $('view').innerHTML = `<div class="top"><h2>${c.name}</h2></div>` + body;
 }
@@ -209,7 +240,7 @@ function renderPanel(){
   $('go').setAttribute('aria-disabled', ids.length ? 'false' : 'true');
 }
 
-function refresh(){ renderView(); renderPanel(); }
+function refresh(){ renderView(); renderPanel(); try{ localStorage.setItem('apppack-open', open); }catch(e){} }
 function say(t){ $('msg').textContent = t; }
 
 document.addEventListener('click', e => {
@@ -226,8 +257,8 @@ document.addEventListener('click', e => {
 $('home').onclick = () => { open = 0; refresh(); };
 $('clear').onclick = () => { sel.clear(); say(''); refresh(); };
 
-const SETUP_V = '3'; /* увеличивай при изменении списка программ: у всех скачается новый установщик */
-const pkey = a => slug(a.n);
+const SETUP_V = '7'; /* увеличивай при изменении списка программ: у всех скачается новый установщик */
+const pkey = a => a.kk || slug(a.n);
 function protoUrl(){
   const L = [...sel].map(id => ALL.find(x => x.k === id));
   return 'apppack://install?ids=' + L.filter(a => a.w).map(a => a.w).join(',') + '&p=' + L.filter(a => !a.w).map(pkey).join(',');
