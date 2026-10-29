@@ -72,6 +72,9 @@ aside h3{margin:0 0 10px;font-size:18px}
 pre{margin:12px 0 0;padding:12px;border-radius:8px;background:var(--term);color:var(--term-ink);font:12.5px/1.5 Consolas,"Cascadia Mono",monospace;max-height:170px;overflow:auto;white-space:pre-wrap;word-break:break-all}
 #msg a{color:var(--ink);text-decoration:underline}
 #msg{min-height:20px;margin:8px 0 0;font-size:13px;color:var(--mute)}
+body.mob #cats,body.mob aside,body.mob #os{display:none}
+body.mob main{grid-template-columns:minmax(0,1fr)}
+.go{font-size:24px;line-height:1;color:var(--mute);width:24px;text-align:center;flex:none}
 #bar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(12,12,14,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);align-items:center;justify-content:space-between;gap:12px}
 #bar .btn{width:auto;margin:0;padding:12px 26px}
 #barcnt{font-weight:600}
@@ -91,6 +94,8 @@ pre{margin:12px 0 0;padding:12px;border-radius:8px;background:var(--term);color:
   #q{max-width:none}
   aside{position:static}
   #bar{display:flex}
+  body.mob #bar{display:none}
+  body.mob main{padding-bottom:24px}
   #toast.show{display:block}
 }
 </style>
@@ -125,7 +130,7 @@ pre{margin:12px 0 0;padding:12px;border-radius:8px;background:var(--term);color:
 /* ====== ДАННЫЕ: правь здесь ======
    n — название, d — подпись, w — ID в winget (проверь: winget search <имя>),
    f — путь к своему установщику на сайте, например "files/chrome.exe" (можно оставить пустым) */
-const CATS = [
+const CATS_ALL = [
  {id:'browsers', name:'Браузеры', ic:'🌐', color:'#3b5bfd', apps:[
   {n:'Google Chrome', d:'Самый популярный', w:'Google.Chrome', f:'', s:'google.com/chrome'},
   {n:'Mozilla Firefox', d:'Открытый, приватный', w:'Mozilla.Firefox', f:'', s:'firefox.com'},
@@ -195,8 +200,17 @@ const CATS = [
  {id:'drivers', name:'Драйверы', ic:'⚙️', color:'#0e9fc0', apps:[
   {g:'Видеокарта', n:'NVIDIA App', d:'Драйверы GeForce', w:'Nvidia.NvidiaApp', f:'', s:'nvidia.com'},
   {g:'Видеокарта', n:'NVIDIA Control Panel', d:'Настройки видеокарты (Store)', w:'9NF8H0H7WMLT', src:'msstore', f:'', s:'nvidia.com'},
-  {g:'Обновление драйверов', n:'Driver Booster', d:'Поиск и обновление драйверов', w:'IObit.DriverBooster', f:'', s:'iobit.com'}]}
+  {g:'Обновление драйверов', n:'Driver Booster', d:'Поиск и обновление драйверов', w:'IObit.DriverBooster', f:'', s:'iobit.com'}]},
+ {id:'mobile', mob:true, name:'Мобильные', ic:'📱', color:'#4a7dff', apps:[
+  {g:'Игры', n:'Tanks Blitz', d:'Мир танков Blitz от Lesta', m:{q:'Tanks Blitz Lesta Games'}, s:'tanksblitz.ru'},
+  {g:'Игры', n:'PUBG Mobile', d:'Королевская битва', m:{a:'https://play.google.com/store/apps/details?id=com.tencent.ig', i:'https://apps.apple.com/app/pubg-mobile/id1330123889'}, s:'pubgmobile.com'},
+  {g:'VPN', n:'Thunder VPN', d:'Быстрый VPN', m:{q:'Thunder VPN'}, s:''},
+  {g:'Мессенджеры', n:'Telegram', d:'Мессенджер', m:{a:'https://play.google.com/store/apps/details?id=org.telegram.messenger', i:'https://apps.apple.com/app/telegram-messenger/id686449807'}, s:'telegram.org'}]}
 ];
+/* телефон: показываем только мобильные приложения; ?mobile=1 — предпросмотр на компьютере */
+const MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || /[?&]mobile=1/.test(location.search);
+const IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const CATS = CATS_ALL.filter(c => !!c.mob === MOBILE);
 CATS.forEach(c => c.apps.forEach(a => a.k = a.w || a.n));
 /* ================================== */
 
@@ -216,7 +230,11 @@ try{ const v = parseInt(localStorage.getItem('apppack-open'), 10); if(v >= 0 && 
   arr.forEach(k => { if(valid.has(k)) sel.add(k); });
 })();
 const WIN = /Windows/i.test(navigator.userAgent);
-if(!WIN) $('os').hidden = false;
+if(MOBILE){
+  document.body.classList.add('mob');
+  $('q').placeholder = 'Поиск приложений…';
+  document.querySelector('header p').textContent = 'Нажми на приложение — откроется ' + (IOS ? 'App Store' : 'Google Play') + '.';
+} else if(!WIN) $('os').hidden = false;
 
 const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 /* иконки: быстрый источник Google (без редиректа) -> DuckDuckGo -> буква; найденный адрес запоминается, всё грузится заранее */
@@ -278,8 +296,13 @@ function renderView(){
     const k = c.apps.filter(a => sel.has(a.k)).length;
     return `<button class="cat${i===open && !q?' cur':''}" data-cat="${i}"><span class="ic">${c.ic}</span><span class="t"><b>${c.name}</b><small>${c.apps.length} программ</small></span><span class="n">${k||''}</span></button>`;
   }).join('');
-  const tile = a => { const kd = kind(a);
-    return `<button class="tile${sel.has(a.k)?' on':''}" title="${a.n} — ${a.d}${kd==='auto'?'':'. '+TAG[kd][1]}" data-app="${a.k}" aria-pressed="${sel.has(a.k)}">${kd==='auto'?'':`<span class="tag">${TAG[kd][0]}</span>`}<span class="ava"><span class="lt">${a.n[0]}</span>${ICON[a.k] === '' ? '' : `<img data-k="${a.k}" data-s="${ICON[a.k] ? 'done' : 0}" src="${ICON[a.k] || chain(a)[0]}" alt="" decoding="async">`}</span><div><b>${a.n}</b><small>${a.d}</small></div><span class="chk"></span></button>`; };
+  const storeLink = a => IOS
+    ? (a.m.i || 'itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=' + encodeURIComponent(a.m.q))
+    : (a.m.a || 'https://play.google.com/store/search?q=' + encodeURIComponent(a.m.q) + '&c=apps');
+  const tile = a => { const kd = a.m ? 'store' : kind(a);
+    const ava = `<span class="ava"><span class="lt">${a.n[0]}</span>${ICON[a.k] === '' ? '' : `<img data-k="${a.k}" data-s="${ICON[a.k] ? 'done' : 0}" src="${ICON[a.k] || chain(a)[0]}" alt="" decoding="async">`}</span>`;
+    if(a.m) return `<a class="tile" href="${storeLink(a)}" target="_blank" rel="noopener" title="${a.n} — ${a.d}"><span class="tag">${IOS ? 'App Store' : 'Google Play'}</span>${ava}<div><b>${a.n}</b><small>${a.d}</small></div><span class="go">›</span></a>`;
+    return `<button class="tile${sel.has(a.k)?' on':''}" title="${a.n} — ${a.d}${kd==='auto'?'':'. '+TAG[kd][1]}" data-app="${a.k}" aria-pressed="${sel.has(a.k)}">${kd==='auto'?'':`<span class="tag">${TAG[kd][0]}</span>`}${ava}<div><b>${a.n}</b><small>${a.d}</small></div><span class="chk"></span></button>`; };
   const grid = list => '<div class="apps">' + list.map(tile).join('') + '</div>';
   if(q){
     const res = ALL.filter(a => (a.n + ' ' + a.d + ' ' + (a.g || '') + ' ' + a.cat + ' ' + (a.w || '')).toLowerCase().includes(q));
