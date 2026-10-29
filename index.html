@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AppPack — выбери программы и установи</title>
+<meta name="description" content="Выбери программы, игры и ИИ-приложения — и установи всё одной кнопкой на Windows.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AppPack — выбери программы и установи">
+<meta property="og:description" content="Браузеры, игры, ИИ, утилиты и проверки ПК. Отметь нужное — и установка пойдёт сама.">
+<meta property="og:image" content="https://notshido.github.io/apppack/bg.jpg">
+<meta property="og:url" content="https://notshido.github.io/apppack/">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root{color-scheme:dark;--card:rgba(62,62,67,.66);--card2:rgba(92,92,99,.78);--ink:#f2f2f4;--mute:#b6b6bd;--line:rgba(255,255,255,.15);--acc:#dcdce0;--acc-ink:#141416;--ok:#e6e6ea;--term:rgba(10,10,12,.78);--term-ink:#cfcfd6}
 *{box-sizing:border-box}
@@ -14,8 +21,12 @@ header h1{margin:0;font-size:28px;letter-spacing:-.02em;cursor:pointer;text-shad
 header p{margin:4px 0 0;color:var(--mute)}
 main{display:grid;grid-template-columns:230px 1fr 320px;gap:20px;padding:16px 0 48px;align-items:start}
 @media (max-width:980px){main{grid-template-columns:210px 1fr}aside{grid-column:1/-1;position:static}}
-@media (max-width:640px){main{grid-template-columns:1fr}#cats{flex-direction:row;overflow-x:auto;position:static}.cat{min-width:170px}}
-#view{min-width:0}
+#view,#center{min-width:0}
+.search{margin-bottom:14px}
+#q{width:100%;max-width:420px;padding:11px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit;backdrop-filter:blur(8px)}
+#q::placeholder{color:var(--mute)}
+.warn{margin:8px 0 0;padding:10px 14px;border-radius:10px;background:rgba(190,90,60,.28);border:1px solid rgba(255,140,100,.4);font-size:14px}
+.tag{position:absolute;top:-8px;right:12px;font-size:11px;line-height:1;padding:3px 8px;border-radius:99px;background:#2b2b30;border:1px solid var(--line);color:var(--mute);pointer-events:none}
 #cats{display:flex;flex-direction:column;gap:10px;position:sticky;top:16px}
 .cat{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);backdrop-filter:blur(8px)}
 .cat:hover{background:var(--card2)}
@@ -34,7 +45,7 @@ main{display:grid;grid-template-columns:230px 1fr 320px;gap:20px;padding:16px 0 
 .blk h3{margin:0 0 10px;font-size:14px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
 .blk .apps{grid-template-columns:minmax(0,1fr)}
 .apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),250px));justify-content:start;gap:10px}
-.tile{all:unset;box-sizing:border-box;min-width:0;height:68px;cursor:pointer;display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);backdrop-filter:blur(8px)}
+.tile{all:unset;box-sizing:border-box;min-width:0;height:68px;position:relative;cursor:pointer;display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);backdrop-filter:blur(8px)}
 .tile:hover{background:var(--card2)}
 .tile.on{border-color:var(--ok);background:var(--card2)}
 .ava{position:relative;overflow:hidden;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:18px;color:#fff;background:#6d6d75;flex:none}
@@ -61,25 +72,54 @@ aside h3{margin:0 0 10px;font-size:18px}
 pre{margin:12px 0 0;padding:12px;border-radius:8px;background:var(--term);color:var(--term-ink);font:12.5px/1.5 Consolas,"Cascadia Mono",monospace;max-height:170px;overflow:auto;white-space:pre-wrap;word-break:break-all}
 #msg a{color:var(--ink);text-decoration:underline}
 #msg{min-height:20px;margin:8px 0 0;font-size:13px;color:var(--mute)}
+#bar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(12,12,14,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);align-items:center;justify-content:space-between;gap:12px}
+#bar .btn{width:auto;margin:0;padding:12px 26px}
+#barcnt{font-weight:600}
+#toast{display:none;position:fixed;left:14px;right:14px;bottom:78px;z-index:40;padding:12px 14px;border-radius:12px;background:rgba(34,34,38,.97);border:1px solid var(--line);font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+@media (max-width:640px){
+  .wrap{padding:0 14px}
+  header{padding:14px 0 6px}
+  header h1{font-size:24px}
+  main{grid-template-columns:minmax(0,1fr);gap:14px;padding:8px 0 100px}
+  #cats{flex-direction:row;overflow-x:auto;position:sticky;top:0;z-index:20;gap:8px;padding:8px 14px;margin:0 -14px;background:rgba(10,10,12,.85);backdrop-filter:blur(10px);scrollbar-width:none}
+  #cats::-webkit-scrollbar{display:none}
+  .cat{flex:none;padding:8px 12px;gap:8px;border-radius:12px}
+  .cat .ic{width:30px;height:30px;font-size:17px;border-radius:8px}
+  .cat b{font-size:15px;white-space:nowrap}
+  .cat small{display:none}
+  .apps,.blk .apps,.blocks{grid-template-columns:minmax(0,1fr)}
+  #q{max-width:none}
+  aside{position:static}
+  #bar{display:flex}
+  #toast.show{display:block}
+}
 </style>
 </head>
 <body>
 <header class="wrap">
   <h1 id="home">AppPack</h1>
   <p>Отметь нужные программы и нажми «Установить».</p>
+  <p id="os" class="warn" hidden>Установка работает только на компьютерах с Windows 10/11. С этого устройства можно только собрать список и отправить ссылку.</p>
 </header>
 <main class="wrap">
   <nav id="cats" aria-label="Разделы"></nav>
-  <section id="view" aria-live="polite"></section>
+  <div id="center">
+    <div class="search"><input id="q" type="search" placeholder="Поиск по всем программам…" autocomplete="off" aria-label="Поиск"></div>
+    <section id="view" aria-live="polite"></section>
+  </div>
   <aside>
     <h3>Выбрано: <span id="cnt">0</span></h3>
     <p class="empty" id="empty">Пока ничего. Открой раздел и отметь программы.</p>
     <ul class="list" id="list"></ul>
     <button class="btn main" id="go" aria-disabled="true">Установить</button>
+    <button class="btn alt" id="share">Скопировать ссылку на набор</button>
+    <button class="btn alt" id="upg">Обновить все программы</button>
     <button class="btn alt" id="clear">Очистить выбор</button>
     <p id="msg"></p>
   </aside>
 </main>
+<div id="bar"><span id="barcnt">Выбрано: 0</span><button class="btn main" id="bargo" aria-disabled="true">Установить</button></div>
+<div id="toast" role="status"></div>
 
 <script>
 /* ====== ДАННЫЕ: правь здесь ======
@@ -99,7 +139,7 @@ const CATS = [
   {g:'Лаунчеры', n:'Epic Games', i:'icons/epic-games.png', raw:true, d:'Лаунчер Epic', w:'EpicGames.EpicGamesLauncher', f:'', s:'epicgames.com'},
   {g:'Лаунчеры', n:'Riot Games', i:'icons/riot-games.png', d:'Лаунчер Riot (Valorant, LoL)', w:'', u:'https://www.riotgames.com/en', s:'riotgames.com'},
   {g:'Шутеры', n:'Arena Breakout', d:'Лаунчер MoreFun', w:'', u:'https://arenabreakoutinfinite.com/', s:'arenabreakoutinfinite.com'},
-  {g:'Шутеры', n:'War Thunder', d:'Лаунчер Gaijin', w:'', u:'https://warthunder.com/en/game/download', s:'warthunder.com'},
+  {g:'Шутеры', n:'War Thunder', d:'Лаунчер Gaijin', w:'GaijinNetwork.WarThunder', f:'', s:'warthunder.com'},
   {g:'Шутеры', n:'Мир танков', kk:'world-of-tanks', d:'Lesta Game Center', w:'', u:'https://lesta.ru/', s:'lesta.ru'},
   {g:'Гача', n:'Genshin Impact', i:'icons/genshin-impact.png', d:'Лаунчер HoYoPlay', w:'', u:'https://genshin.hoyoverse.com/en/home', s:'genshin.hoyoverse.com'},
   {g:'Гача', n:'NTE', kk:'neverness-to-everness', i:'icons/neverness-to-everness.png', d:'Neverness to Everness', w:'', u:'https://nte.perfectworld.com/en', s:'nte.perfectworld.com'},
@@ -123,22 +163,22 @@ const CATS = [
   {g:'Графика и скриншоты', n:'Blender', d:'3D-моделирование и анимация', w:'BlenderFoundation.Blender', f:'', s:'blender.org'},
   {g:'Графика и скриншоты', n:'GIMP', d:'Редактор изображений', w:'GIMP.GIMP.3', f:'', s:'gimp.org'},
   {g:'Графика и скриншоты', n:'ShareX', d:'Скриншоты и запись экрана', w:'ShareX.ShareX', f:'', s:'getsharex.com'},
-  {g:'Графика и скриншоты', n:'Lightshot', d:'Скриншоты (скачает установщик)', w:'', u:'https://app.prntscr.com/build/setup-lightshot.exe', s:'app.prntscr.com'},
+  {g:'Графика и скриншоты', n:'Lightshot', d:'Скриншоты, установщик скачается', w:'', dl:true, u:'https://app.prntscr.com/build/setup-lightshot.exe', s:'app.prntscr.com'},
   {g:'Видео и запись', n:'OBS Studio', d:'Запись экрана и стримы', w:'OBSProject.OBSStudio', f:'', s:'obsproject.com'},
   {g:'Видео и запись', n:'CapCut', d:'Видеоредактор', w:'ByteDance.CapCut', f:'', s:'capcut.com'}]},
  {id:'ai', name:'ИИ', ic:'🤖', color:'#7a5cff', apps:[
   {n:'Claude', d:'Ассистент от Anthropic', w:'Anthropic.Claude', f:'', s:'claude.ai'},
   {n:'ChatGPT', d:'Ассистент от OpenAI', w:'9NT1R1C2HH7J', src:'msstore', f:'', s:'chatgpt.com'},
-  {n:'Gemini', d:'Ассистент от Google', w:'', u:'https://gemini.google/desktop', s:'gemini.google.com'}]},
+  {n:'Gemini', d:'Приложение Google для Windows', w:'Google.GeminiDesktop', f:'', s:'gemini.google.com'}]},
  {id:'shell', name:'Оболочка', ic:'💿', color:'#c0562b', apps:[
   {g:'Виртуализация и флешки', n:'Oracle VirtualBox', d:'Виртуальные машины', w:'Oracle.VirtualBox', f:'', s:'virtualbox.org'},
   {g:'Виртуализация и флешки', n:'Rufus', d:'Загрузочные флешки из ISO', w:'Rufus.Rufus', f:'', s:'rufus.ie'},
-  {g:'Windows', n:'Windows 11', d:'ISO с сайта Microsoft', w:'', u:'https://www.microsoft.com/software-download/windows11', s:'windows.com'},
-  {g:'Windows', n:'Windows 10', d:'ISO с сайта Microsoft', w:'', u:'https://www.microsoft.com/software-download/windows10', s:'windows.com'},
-  {g:'Linux', n:'Kali Linux', d:'ISO с kali.org', w:'', u:'https://www.kali.org/get-kali/', s:'kali.org'},
-  {g:'Linux', n:'Ubuntu', d:'ISO с ubuntu.com', w:'', u:'https://ubuntu.com/download/desktop', s:'ubuntu.com'},
-  {g:'Linux', n:'Linux Mint', d:'ISO с linuxmint.com', w:'', u:'https://linuxmint.com/download.php', s:'linuxmint.com'},
-  {g:'Linux', n:'Debian', d:'ISO с debian.org', w:'', u:'https://www.debian.org/distrib/', s:'debian.org'}]},
+  {g:'Windows', n:'Windows 11', d:'Media Creation Tool (ISO/флешка)', w:'', dl:true, u:'https://go.microsoft.com/fwlink/?linkid=2156295', s:'windows.com'},
+  {g:'Windows', n:'Windows 10', d:'Media Creation Tool (ISO/флешка)', w:'', dl:true, u:'https://go.microsoft.com/fwlink/?LinkId=691209', s:'windows.com'},
+  {g:'Linux', n:'Kali Linux', d:'Скачает ISO в «Загрузки»', w:'', u:'https://www.kali.org/get-kali/', iso:['https://cdimage.kali.org/current/', '', 'kali-linux-[\\d.]+-installer-amd64\\.iso'], s:'kali.org'},
+  {g:'Linux', n:'Ubuntu', d:'Скачает ISO (LTS) в «Загрузки»', w:'', u:'https://ubuntu.com/download/desktop', iso:['https://releases.ubuntu.com/noble/', '', 'ubuntu-[\\d.]+-desktop-amd64\\.iso'], s:'ubuntu.com'},
+  {g:'Linux', n:'Linux Mint', d:'Скачает ISO в «Загрузки»', w:'', u:'https://linuxmint.com/download.php', iso:['https://mirrors.kernel.org/linuxmint/stable/', 'href="(\\d+\\.\\d+)/"', 'linuxmint-[\\d.]+-cinnamon-64bit\\.iso'], s:'linuxmint.com'},
+  {g:'Linux', n:'Debian', d:'Скачает ISO (netinst) в «Загрузки»', w:'', u:'https://www.debian.org/distrib/', iso:['https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/', '', 'debian-[\\d.]+-amd64-netinst\\.iso'], s:'debian.org'}]},
  {id:'checks', name:'Проверки', ic:'🩺', color:'#2f9e8f', apps:[
   {g:'Всё о системе', n:'HWiNFO', d:'Полная информация и датчики', w:'REALiX.HWiNFO', f:'', s:'hwinfo.com'},
   {g:'Всё о системе', n:'HWMonitor', d:'Температуры и напряжения', w:'CPUID.HWMonitor', f:'', s:'cpuid.com'},
@@ -153,16 +193,30 @@ const CATS = [
   {n:'Hamachi', d:'Виртуальная сеть', w:'LogMeIn.Hamachi', f:'', s:'vpn.net'},
   {n:'Radmin VPN', d:'Бесплатная VPN для игр', w:'Famatech.RadminVPN', f:'', s:'radmin-vpn.com'}]},
  {id:'drivers', name:'Драйверы', ic:'⚙️', color:'#0e9fc0', apps:[
-  {n:'NVIDIA App', d:'Драйверы GeForce', w:'Nvidia.NvidiaApp', f:'', s:'nvidia.com'}]}
+  {g:'Видеокарта', n:'NVIDIA App', d:'Драйверы GeForce', w:'Nvidia.NvidiaApp', f:'', s:'nvidia.com'},
+  {g:'Видеокарта', n:'NVIDIA Control Panel', d:'Настройки видеокарты (Store)', w:'9NF8H0H7WMLT', src:'msstore', f:'', s:'nvidia.com'},
+  {g:'Обновление драйверов', n:'Driver Booster', d:'Поиск и обновление драйверов', w:'IObit.DriverBooster', f:'', s:'iobit.com'}]}
 ];
 CATS.forEach(c => c.apps.forEach(a => a.k = a.w || a.n));
 /* ================================== */
 
-const ALL = CATS.flatMap(c => c.apps.map(a => ({...a, color:c.color})));
+const ALL = CATS.flatMap(c => c.apps.map(a => ({...a, color:c.color, cat:c.name})));
 const sel = new Set();
+let Q = '';
 const $ = id => document.getElementById(id);
 let open = 0;
 try{ const v = parseInt(localStorage.getItem('apppack-open'), 10); if(v >= 0 && v < CATS.length) open = v; }catch(e){}
+(function(){
+  const valid = new Set(ALL.map(a => a.k)); let arr = [];
+  try{
+    const h = location.hash.match(/^#set=(.*)$/);
+    if(h){ arr = h[1].split('~').map(decodeURIComponent); history.replaceState(null, '', location.pathname + location.search); }
+    else arr = JSON.parse(localStorage.getItem('apppack-sel') || '[]');
+  }catch(e){}
+  arr.forEach(k => { if(valid.has(k)) sel.add(k); });
+})();
+const WIN = /Windows/i.test(navigator.userAgent);
+if(!WIN) $('os').hidden = false;
 
 const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 /* иконки: быстрый источник Google (без редиректа) -> DuckDuckGo -> буква; найденный адрес запоминается, всё грузится заранее */
@@ -216,14 +270,23 @@ function preload(){
     im.src = chain(a)[0]; });
 }
 
+const kind = a => a.w ? (a.src ? 'store' : 'auto') : (a.dl ? 'dl' : (a.iso ? 'iso' : 'site'));
+const TAG = {store:['Microsoft Store','Установится через Microsoft Store (нужен работающий магазин)'], dl:['скачает и запустит','Установщик скачается сам и запустится'], iso:['скачает ISO','ISO скачается сам в папку «Загрузки» (если не получится — откроется официальный сайт)'], site:['откроет сайт','Автоустановки нет: откроется официальная страница загрузки']};
 function renderView(){
+  const q = Q.trim().toLowerCase();
   $('cats').innerHTML = CATS.map((c,i) => {
     const k = c.apps.filter(a => sel.has(a.k)).length;
-    return `<button class="cat${i===open?' cur':''}" data-cat="${i}"><span class="ic">${c.ic}</span><span class="t"><b>${c.name}</b><small>${c.apps.length} программ</small></span><span class="n">${k||''}</span></button>`;
+    return `<button class="cat${i===open && !q?' cur':''}" data-cat="${i}"><span class="ic">${c.ic}</span><span class="t"><b>${c.name}</b><small>${c.apps.length} программ</small></span><span class="n">${k||''}</span></button>`;
   }).join('');
-  const c = CATS[open];
-  const tile = a => `<button class="tile${sel.has(a.k)?' on':''}" title="${a.n} — ${a.d}" data-app="${a.k}" aria-pressed="${sel.has(a.k)}"><span class="ava"><span class="lt">${a.n[0]}</span>${ICON[a.k] === '' ? '' : `<img data-k="${a.k}" data-s="${ICON[a.k] ? 'done' : 0}" src="${ICON[a.k] || chain(a)[0]}" alt="" decoding="async">`}</span><div><b>${a.n}</b><small>${a.d}</small></div><span class="chk"></span></button>`;
+  const tile = a => { const kd = kind(a);
+    return `<button class="tile${sel.has(a.k)?' on':''}" title="${a.n} — ${a.d}${kd==='auto'?'':'. '+TAG[kd][1]}" data-app="${a.k}" aria-pressed="${sel.has(a.k)}">${kd==='auto'?'':`<span class="tag">${TAG[kd][0]}</span>`}<span class="ava"><span class="lt">${a.n[0]}</span>${ICON[a.k] === '' ? '' : `<img data-k="${a.k}" data-s="${ICON[a.k] ? 'done' : 0}" src="${ICON[a.k] || chain(a)[0]}" alt="" decoding="async">`}</span><div><b>${a.n}</b><small>${a.d}</small></div><span class="chk"></span></button>`; };
   const grid = list => '<div class="apps">' + list.map(tile).join('') + '</div>';
+  if(q){
+    const res = ALL.filter(a => (a.n + ' ' + a.d + ' ' + (a.g || '') + ' ' + a.cat + ' ' + (a.w || '')).toLowerCase().includes(q));
+    $('view').innerHTML = `<div class="top"><h2>Поиск: найдено ${res.length}</h2></div>` + (res.length ? grid(res) : '<p class="empty">Ничего не нашлось. Попробуй другое слово.</p>');
+    return;
+  }
+  const c = CATS[open];
   let body;
   if(c.apps.some(a => a.g)){
     const gs = [...new Set(c.apps.map(a => a.g || 'Другое'))];
@@ -238,15 +301,23 @@ function renderPanel(){
   $('empty').hidden = ids.length > 0;
   $('list').innerHTML = ids.map(id => `<li>${ALL.find(a => a.k === id).n}<button data-rm="${id}" aria-label="Убрать">✕</button></li>`).join('');
   $('go').setAttribute('aria-disabled', ids.length ? 'false' : 'true');
+  $('share').setAttribute('aria-disabled', ids.length ? 'false' : 'true');
+  $('barcnt').textContent = 'Выбрано: ' + ids.length;
+  $('bargo').setAttribute('aria-disabled', ids.length ? 'false' : 'true');
 }
 
-function refresh(){ renderView(); renderPanel(); try{ localStorage.setItem('apppack-open', open); }catch(e){} }
-function say(t){ $('msg').textContent = t; }
+function refresh(){ renderView(); renderPanel(); try{ localStorage.setItem('apppack-open', open); localStorage.setItem('apppack-sel', JSON.stringify([...sel])); }catch(e){} }
+function toast(t){
+  if(!t || !matchMedia('(max-width:640px)').matches) return;
+  const el = $('toast'); el.textContent = t; el.classList.add('show');
+  clearTimeout(window.__tt); window.__tt = setTimeout(() => el.classList.remove('show'), 5000);
+}
+function say(t){ $('msg').textContent = t; toast(t); }
 
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-cat],[data-back],[data-app],[data-rm]');
   if(!t) return;
-  if(t.dataset.cat !== undefined) open = +t.dataset.cat;
+  if(t.dataset.cat !== undefined){ open = +t.dataset.cat; Q = ''; $('q').value = ''; }
   else if(t.dataset.back !== undefined) open = null;
   else {
     const id = t.dataset.app || t.dataset.rm;
@@ -254,10 +325,13 @@ document.addEventListener('click', e => {
   }
   say(''); refresh();
 });
-$('home').onclick = () => { open = 0; refresh(); };
+$('home').onclick = () => { open = 0; Q = ''; $('q').value = ''; refresh(); };
+$('q').oninput = e => { Q = e.target.value; renderView(); };
+$('q').onkeydown = e => { if(e.key === 'Escape'){ Q = ''; e.target.value = ''; renderView(); } };
 $('clear').onclick = () => { sel.clear(); say(''); refresh(); };
 
-const SETUP_V = '7'; /* увеличивай при изменении списка программ: у всех скачается новый установщик */
+/* версия считается из списка программ сама: изменился список — у всех один раз скачается новый установщик */
+const SETUP_V = (() => { const t = ALL.map(a => [a.k, a.w ? '' : a.n, a.u || '', a.dl ? 1 : 0, a.iso ? a.iso.join('^') : '', a.src || '', a.kk || ''].join('~')).join('|'); let h = 5381; for(let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return 'v' + h.toString(36); })();
 const pkey = a => a.kk || slug(a.n);
 function protoUrl(){
   const L = [...sel].map(id => ALL.find(x => x.k === id));
@@ -266,7 +340,9 @@ function protoUrl(){
 function setupBat(url){
   const W = ALL.filter(a => a.w).map(a => `'${a.w}'`).join(',');
   const MS = ALL.filter(a => a.src).map(a => `'${a.w}'`).join(',');
-  const P = ALL.filter(a => !a.w).map(a => `'${pkey(a)}'='${a.u}'`).join(';');
+  const P = ALL.filter(a => !a.w && !a.dl).map(a => `'${pkey(a)}'='${a.u}'`).join(';');
+  const D = ALL.filter(a => !a.w && a.dl).map(a => `'${pkey(a)}'='${a.u}'`).join(';');
+  const I = ALL.filter(a => !a.w && a.iso).map(a => `'${pkey(a)}'=@('${a.iso[0]}','${a.iso[1]}','${a.iso[2]}')`).join(';');
   const ps = `$d = Join-Path $env:LOCALAPPDATA 'AppPack'
 New-Item -ItemType Directory -Force -Path $d | Out-Null
 $hp = Join-Path $d 'handler.ps1'
@@ -275,28 +351,76 @@ param([string]$u)
 $ok = @(${W})
 $ms = @(${MS})
 $pg = @{${P}}
-$q = ($u -split '\\?', 2)[1]
-$ids = @(); $pages = @()
-foreach($kv in ($q -split '&')){
-  $p = $kv -split '=', 2
-  if($p[0] -eq 'ids'){ $ids = $p[1] -split ',' }
-  if($p[0] -eq 'p'){ $pages = $p[1] -split ',' }
-}
-$ids = @($ids | Where-Object { $ok -contains $_ })
-$pages = @($pages | Where-Object { $pg.ContainsKey($_) })
+$dl = @{${D}}
+$iso = @{${I}}
+Add-Type -AssemblyName PresentationFramework
+function Note($t){ [void][System.Windows.MessageBox]::Show($t, 'AppPack') }
 $me = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
 if(-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
-  Start-Process powershell.exe -Verb RunAs -ArgumentList ('-NoProfile -ExecutionPolicy Bypass -File "{0}" "{1}"' -f $PSCommandPath, $u)
+  try{ Start-Process powershell.exe -Verb RunAs -ArgumentList ('-NoProfile -ExecutionPolicy Bypass -File "{0}" "{1}"' -f $PSCommandPath, $u) }
+  catch{ Note 'Нужно нажать «Да» в окне Windows, иначе установка невозможна. Попробуй ещё раз.' }
   exit
+}
+$mode = 'install'; $ids = @(); $pages = @()
+if($u -like 'apppack://upgrade*'){ $mode = 'upgrade' }
+else {
+  $q = ($u -split '\\?', 2)[1]
+  foreach($kv in ($q -split '&')){
+    $p = $kv -split '=', 2
+    if($p[0] -eq 'ids'){ $ids = $p[1] -split ',' }
+    if($p[0] -eq 'p'){ $pages = $p[1] -split ',' }
+  }
+}
+$ids = @($ids | Where-Object { $ok -contains $_ })
+$pages = @($pages | Where-Object { $pg.ContainsKey($_) -or $dl.ContainsKey($_) -or $iso.ContainsKey($_) })
+if(($mode -eq 'upgrade' -or $ids.Count -gt 0) -and -not (Get-Command winget -ErrorAction SilentlyContinue)){
+  Note 'На этом компьютере не найден winget. Обнови «Установщик приложений» (App Installer) в Microsoft Store: сейчас откроется его страница.'
+  Start-Process 'https://apps.microsoft.com/detail/9nblggh4nns1'
+  exit
+}
+$fail = @(); $done = @()
+$skip = @(0, -1978335189, -1978335135)
+if($mode -eq 'upgrade'){
+  Write-Host 'Updating all apps'
+  winget upgrade --all --silent --accept-package-agreements --accept-source-agreements
+  if($skip -notcontains $LASTEXITCODE){ $fail += 'часть обновлений' }
 }
 foreach($id in $ids){
   Write-Host "Installing $id"
   if($ms -contains $id){ winget install --id $id --source msstore --silent --accept-package-agreements --accept-source-agreements }
   else { winget install --id $id -e --silent --accept-package-agreements --accept-source-agreements }
+  if($skip -notcontains $LASTEXITCODE){ $fail += $id }
 }
-foreach($p in $pages){ Start-Process $pg[$p] }
-Write-Host 'Done'
-Start-Sleep 5
+foreach($p in $pages){
+  if($dl.ContainsKey($p)){
+    try{
+      $f = Join-Path $env:TEMP ($p + '.exe')
+      Write-Host "Downloading $p"
+      Invoke-WebRequest -Uri $dl[$p] -OutFile $f -UseBasicParsing
+      Start-Process $f -Wait
+      Remove-Item $f -Force -ErrorAction SilentlyContinue
+    } catch { $fail += $p }
+  } elseif($iso.ContainsKey($p)){
+    try{
+      $sp = $iso[$p]; $base = $sp[0]
+      if($sp[1]){
+        $l = (Invoke-WebRequest $base -UseBasicParsing).Content
+        $d = [regex]::Matches($l, $sp[1]) | ForEach-Object { $_.Groups[1].Value } | Sort-Object { [version]$_ } | Select-Object -Last 1
+        $base = $base + $d + '/'
+      }
+      $l = (Invoke-WebRequest $base -UseBasicParsing).Content
+      $f = [regex]::Matches($l, $sp[2]) | ForEach-Object { $_.Value } | Sort-Object -Unique | Select-Object -Last 1
+      if(-not $f){ throw 'iso not found' }
+      $dest = Join-Path ([Environment]::GetFolderPath('UserProfile')) ('Downloads\\' + $f)
+      Write-Host "Downloading $f"
+      Start-BitsTransfer -Source ($base + $f) -Destination $dest
+      $done += $f
+    } catch { Start-Process $pg[$p]; $fail += ($p + ' (ISO не скачался сам, открыл сайт)') }
+  } else { Start-Process $pg[$p] }
+}
+if($done.Count -gt 0){ Note ('ISO сохранены в папке «Загрузки»: ' + ($done -join ', ')) }
+if($fail.Count -gt 0){ Note ('Не удалось: ' + ($fail -join ', ') + '. Проверь интернет и попробуй ещё раз или поставь вручную.') }
+elseif($done.Count -eq 0){ Write-Host 'Done'; Start-Sleep 4 }
 '@
 Set-Content -Path $hp -Value $h -Encoding UTF8
 $k = 'HKCU:\\Software\\Classes\\apppack'
@@ -320,15 +444,30 @@ function download(url){
   try{ localStorage.setItem('apppack-ready', SETUP_V); }catch(e){}
   say('Файл скачан: открой его (двойной щелчок в панели загрузок) и подтверди запрос Windows. Всё поставится само, а в следующий раз установка начнётся сразу по кнопке.');
 }
-$('go').onclick = () => {
-  if(!sel.size) return say('Сначала отметь хотя бы одну программу.');
-  const url = protoUrl();
+let lastUrl = '';
+function run(url){
+  lastUrl = url;
   let ready = false; try{ ready = localStorage.getItem('apppack-ready') === SETUP_V; }catch(e){}
   if(!ready) return download(url);
   const a = document.createElement('a'); a.href = url; a.click();
   $('msg').innerHTML = 'Если браузер спросил разрешение — нажми «Открыть». Ничего не произошло? <a href="#" id="redo">Скачать установщик заново</a>';
+  toast('Если браузер спросил разрешение, нажми «Открыть».');
+}
+const NOWIN = 'Установка работает только на компьютерах с Windows 10/11.';
+$('go').onclick = () => {
+  if(!WIN) return say(NOWIN);
+  if(!sel.size) return say('Сначала отметь хотя бы одну программу.');
+  run(protoUrl());
 };
-$('msg').addEventListener('click', e => { if(e.target.id === 'redo'){ e.preventDefault(); download(protoUrl()); } });
+$('bargo').onclick = () => $('go').click();
+$('upg').onclick = () => { if(!WIN) return say(NOWIN); run('apppack://upgrade'); };
+$('share').onclick = async () => {
+  if(!sel.size) return say('Сначала отметь хотя бы одну программу.');
+  const link = location.origin + location.pathname + '#set=' + [...sel].map(encodeURIComponent).join('~');
+  try{ await navigator.clipboard.writeText(link); say('Ссылка скопирована. Кто её откроет, увидит эти программы уже отмеченными.'); }
+  catch(e){ say(link); }
+};
+$('msg').addEventListener('click', e => { if(e.target.id === 'redo'){ e.preventDefault(); download(lastUrl || protoUrl()); } });
 
 
 refresh();
